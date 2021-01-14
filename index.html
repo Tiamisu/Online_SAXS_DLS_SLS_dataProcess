@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+  <head>
+    <meta charset="utf-8">
+    <title>Online SAXS Data Processing</title>
+    <script src="/js/plotly.min.js" charset="utf-8"></script>
+    <script type="text/javascript">
+      function $(...elements) {
+        let elementArray = new Array(elements.length)
+        elements.forEach((item, i) => {
+          elementArray[i] = document.getElementById(item);
+        });
+        return elementArray;
+      };
+      var fileContent = [];
+      var metaInfo = [];
+      var data = [
+        [],
+        [],
+        [],
+        []
+      ];
+
+
+      window.onload = () => {
+        const [fileSelector, chartArea, plotHeight, plotWidth] = $(
+          "fileSelector", "chartArea", "plotHeight", "plotWidth");
+      }
+
+      function updateFile() {
+        fileSelector.files[0].text().then(_content => {
+          let rows = _content.split("\n");
+          let metaInfoLines = 0
+          rows.forEach((item, i) => {
+            item = item.trim();
+            if (Number.isNaN(Number(item[0]))) {
+              metaInfo.push(item);
+              metaInfoLines++;
+            } else {
+              let j = i - metaInfoLines;
+              fileContent[j] = item.split(/[\s\t]+/g);
+              for (k = 0; k < 4; k++) {
+                data[k][j] = parseFloat(fileContent[j][k]);
+              }
+            }
+          }); //forEach ends here
+
+          drawPlot();
+
+        })
+      }
+
+      function drawPlot() {
+        let SAXS_plot = {
+          x: data[0],
+          y: data[1],
+          type: "scatter"
+        }
+        if (Number.isNaN(Number(plotWidth.value))) {
+            plotWidth.value = 700
+          }
+          if (Number.isNaN(Number(plotHeight.value))) {
+              plotHeight.value = 700
+            }
+
+            let layout = {
+              width: plotWidth.value,
+              height: plotHeight.value,
+              xaxis: {
+                type: 'log',
+                autorange: true
+              },
+              yaxis: {
+                type: 'log',
+                autorange: true
+              }
+
+            }
+            Plotly.newPlot(chartArea, [SAXS_plot], layout);
+          }
+
+    </script>
+
+  </head>
+
+  <body>
+    <input type="file" id="fileSelector" onchange="updateFile()">
+    <p>plot Height:
+      <input type="number" id="plotHeight" value="700" onchange="drawPlot()">
+    </p>
+    <p>plot Width:
+      <input type="number" id="plotWidth" value="700" onchange="drawPlot()"></p>
+    <div id="chartArea"></div>
+  </body>
+
+</html>
